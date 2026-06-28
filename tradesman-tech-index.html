@@ -260,13 +260,21 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    opacity: 0.5;
+    opacity: 0.85;
     background-image:
-      linear-gradient(var(--line-light) 1px, transparent 1px),
-      linear-gradient(90deg, var(--line-light) 1px, transparent 1px);
-    background-size: 56px 56px;
-    mask-image: radial-gradient(ellipse at 50% 30%, #000 30%, transparent 75%);
-    -webkit-mask-image: radial-gradient(ellipse at 50% 30%, #000 30%, transparent 75%);
+      /* major grid lines — heavier, every 224px */
+      linear-gradient(rgba(28,53,94,0.20) 1.5px, transparent 1.5px),
+      linear-gradient(90deg, rgba(28,53,94,0.20) 1.5px, transparent 1.5px),
+      /* minor grid lines — finer, every 56px */
+      linear-gradient(rgba(28,53,94,0.11) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(28,53,94,0.11) 1px, transparent 1px);
+    background-size:
+      224px 224px,
+      224px 224px,
+      56px 56px,
+      56px 56px;
+    mask-image: radial-gradient(ellipse at 50% 30%, #000 42%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse at 50% 30%, #000 42%, transparent 80%);
   }
   .tt-site .hero .grain {
     position: absolute; inset: 0; pointer-events: none;
