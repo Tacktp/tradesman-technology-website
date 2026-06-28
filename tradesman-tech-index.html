@@ -1,0 +1,1973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#1c355e" />
+
+  <title>Tradesman Technology — JobTread Implementation & Optimization | Lee T. Barron</title>
+  <meta name="description" content="JobTread implementation, optimization, and integration done by a contractor who actually runs a construction company. 20+ implementations, every trade. Done-for-you or done-with-you." />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Tradesman Technology — JobTread Implementation Specialist" />
+  <meta property="og:description" content="Built by a tradesman. Built for tradesmen. JobTread implementation done right — by someone who actually runs a construction company." />
+  <meta property="og:site_name" content="Tradesman Technology" />
+  <!-- TODO: add og:image (1200x630) once social-share asset is ready -->
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Tradesman Technology — JobTread Implementation Specialist" />
+  <meta name="twitter:description" content="Built by a tradesman. Built for tradesmen. JobTread implementation across every trade." />
+
+  <!-- Favicon placeholder - replace with real assets -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%231c355e'/%3E%3Cpath d='M28 70 L28 30 L42 30 L50 50 L58 30 L72 30 L72 70 L62 70 L62 46 L52 70 L48 70 L38 46 L38 70 Z' fill='%23ff5600'/%3E%3C/svg%3E" />
+
+  <!-- ============================================================
+       GHL TRACKING PIXEL  —  PASTE BETWEEN THE MARKERS BELOW
+       Get it from: GHL → Sites → (your site) → Tracking → Track Site
+       ============================================================ -->
+  <!-- GHL_TRACKING_START -->
+
+  <!-- GHL_TRACKING_END -->
+
+  <!-- Fonts: Roboto family + JetBrains Mono.
+       Roboto = JobTread's official brand typography — instant visual family alignment.
+       Roboto Slab = display contrast within the same family.
+       JetBrains Mono = technical/spec labels that signal the IT-consulting DNA. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=Roboto+Slab:wght@500;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+  /* =====================================================================
+     TRADESMAN TECHNOLOGY  ·  Lee T. Barron
+     JobTread Implementation Specialist
+     A DBA of TACK Technology Partners
+     ===================================================================== */
+
+  :root {
+    /* JobTread official brand colors — exact match for "in the family" signal */
+    --jt-orange: #ff5600;
+    --jt-orange-soft: #ff7733;
+    --jt-orange-glow: rgba(255, 86, 0, 0.18);
+    --jt-dark-blue: #1c355e;
+    --jt-blue: #1e48bd;
+    --jt-sky-blue: #2196f3;
+    --jt-brand-black: #0e0f13;
+    --jt-gray-8: #181a24;
+    --jt-primary-gray: #404353;
+    --jt-gray-6: #545765;
+    --jt-gray-5: #838591;
+    --jt-gray-4: #acaeb5;
+    --jt-gray-3: #d5d7db;
+    --jt-gray-2: #ecedf0;
+    --jt-gray-1: #f5f7fa;
+    --white: #ffffff;
+
+    /* Brand application
+       NOTE: dark surfaces use JobTread Dark Blue (#1c355e), NOT brand-black.
+       Bright-orange-on-near-black is Procore's signature; navy + orange is
+       JobTread's. --ink is reserved for true text; --surface-dark is the
+       dark-section background. */
+    --ink: var(--jt-brand-black);          /* text only */
+    --surface-dark: var(--jt-dark-blue);    /* dark sections — JobTread navy */
+    --surface-dark-2: #16294a;              /* deeper navy for cards on navy */
+    --paper: #f5f7fa;        /* JobTread Gray 1 — cool, not warm cream */
+    --paper-dim: #ecedf0;    /* JobTread Gray 2 */
+    --accent: var(--jt-orange);
+    --accent-2: var(--jt-dark-blue);
+    --accent-blue: var(--jt-sky-blue);      /* secondary accent so orange isn't alone */
+    --line: rgba(28, 53, 94, 0.14);
+    --line-light: rgba(28, 53, 94, 0.07);
+    --line-strong: rgba(28, 53, 94, 0.22);
+    --line-on-dark: rgba(255, 255, 255, 0.12);
+
+    --disp: 'Roboto Slab', Georgia, serif;
+    --sans: 'Roboto', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', 'SF Mono', Monaco, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+  body { background: var(--paper); }
+
+  .tt-site {
+    font-family: var(--sans);
+    color: var(--ink);
+    line-height: 1.5;
+    font-size: 17px;
+    overflow-x: hidden;
+  }
+
+  .tt-site .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  /* ===== Type system ===== */
+  .tt-site h1, .tt-site h2, .tt-site h3, .tt-site h4 {
+    font-family: var(--disp);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .tt-site h1 {
+    font-size: clamp(46px, 7.2vw, 96px);
+    font-weight: 900;
+  }
+  .tt-site h1 em {
+    font-style: normal;
+    color: var(--accent);
+    font-family: var(--disp);
+  }
+  .tt-site h2 {
+    font-size: clamp(34px, 4.6vw, 60px);
+    font-weight: 800;
+  }
+  .tt-site h3 {
+    font-size: clamp(20px, 1.6vw, 24px);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .tt-site .ey {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: inline-block;
+  }
+  .tt-site .ey.dim {
+    color: var(--jt-gray-5);
+  }
+  .tt-site p { font-weight: 400; }
+  .tt-site .lede {
+    font-size: clamp(17px, 1.5vw, 21px);
+    line-height: 1.55;
+    color: var(--jt-gray-6);
+    max-width: 56ch;
+  }
+
+  /* ===== Buttons ===== */
+  .tt-site .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent);
+    color: #fff;
+    padding: 15px 24px;
+    border-radius: 4px;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    border: 2px solid var(--accent);
+    transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+    box-shadow: 0 6px 20px rgba(255,86,0,0.25);
+  }
+  .tt-site .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px rgba(255,86,0,0.35);
+    background: #ff6a1c;
+  }
+  .tt-site .btn.ghost {
+    background: transparent;
+    color: var(--ink);
+    border: 2px solid var(--ink);
+    box-shadow: none;
+  }
+  .tt-site .btn.ghost:hover {
+    background: var(--ink);
+    color: #fff;
+  }
+  .tt-site .btn.lt {
+    background: #fff;
+    color: var(--ink);
+    border-color: #fff;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  }
+  .tt-site .btn.lt:hover { background: var(--jt-gray-1); color: var(--accent-2); }
+
+  /* ===== Nav ===== */
+  .tt-site .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(250,249,247,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line-light);
+  }
+  .tt-site .nav .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+  .tt-site .brand {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--ink);
+  }
+  /* Inline-SVG wordmark logo. currentColor drives the "TECHNOLOGY" tagline
+     in the SVG, so it adapts to whatever color context it sits in. */
+  .tt-site .tt-logo {
+    display: block;
+    width: auto;
+    color: var(--ink);   /* "TECHNOLOGY" text color on light bgs */
+  }
+  .tt-site .nav-logo {
+    height: 52px;
+  }
+  .tt-site nav.links {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+  .tt-site nav.links a:not(.btn) {
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14.5px;
+    transition: color .15s;
+  }
+  .tt-site nav.links a:not(.btn):hover { color: var(--accent); }
+  .tt-site nav.links .btn { padding: 10px 18px; font-size: 13.5px; }
+
+  /* ===== Hero ===== */
+  .tt-site .hero {
+    position: relative;
+    padding: 96px 0 84px;
+    overflow: hidden;
+    background:
+      radial-gradient(ellipse at 18% 0%, rgba(255,86,0,0.08), transparent 55%),
+      radial-gradient(ellipse at 100% 100%, rgba(28,53,94,0.07), transparent 55%),
+      var(--paper);
+  }
+  .tt-site .hero .blueprint {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.5;
+    background-image:
+      linear-gradient(var(--line-light) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-light) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse at 50% 30%, #000 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at 50% 30%, #000 30%, transparent 75%);
+  }
+  .tt-site .hero .grain {
+    position: absolute; inset: 0; pointer-events: none;
+    opacity: 0.5; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.07 0'/></filter><rect width='200' height='200' filter='url(%23n)'/></svg>");
+  }
+  .tt-site .hero .wrap {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 56px;
+    align-items: end;
+  }
+  .tt-site .hero h1 {
+    margin-top: 22px;
+    margin-bottom: 26px;
+  }
+  .tt-site .hero .cta {
+    margin-top: 30px;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .tt-site .hero .microline {
+    margin-top: 22px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--jt-gray-5);
+  }
+  .tt-site .hero .microline b { color: var(--ink); font-weight: 700; }
+
+  /* hero spec card */
+  .tt-site .spec {
+    background: var(--surface-dark);
+    color: #fff;
+    border-radius: 8px;
+    padding: 28px 28px 24px;
+    border: 1px solid var(--line-on-dark);
+    position: relative;
+    overflow: hidden;
+  }
+  .tt-site .spec::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--accent);
+  }
+  /* Avatar + identity row at the top of the spec card.
+     The flex container resets the legacy nm/role margins (kept below for any
+     non-headed usage) so spacing reads as a single unified ID block. */
+  .tt-site .spec .spec-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .tt-site .spec .spec-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex: 0 0 auto;
+    border: 2px solid rgba(255, 255, 255, 0.18);
+    display: block;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  }
+  .tt-site .spec .spec-head .nm { margin-bottom: 4px; }
+  .tt-site .spec .spec-head .role { margin-bottom: 0; }
+  .tt-site .spec .nm {
+    font-family: var(--disp);
+    font-weight: 900;
+    font-size: 26px;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .tt-site .spec .role {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+  }
+  .tt-site .spec .row {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    gap: 14px;
+    padding: 11px 0;
+    border-top: 1px solid var(--line-on-dark);
+    font-size: 14px;
+  }
+  .tt-site .spec .row:last-child { padding-bottom: 0; }
+  .tt-site .spec .k {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--jt-gray-5);
+    text-transform: uppercase;
+    align-self: center;
+  }
+  .tt-site .spec .v { font-weight: 500; }
+  .tt-site .spec .v b { font-weight: 700; color: var(--accent); }
+
+  /* ===== Stat ticker ===== */
+  .tt-site .ticker {
+    background: var(--surface-dark);
+    color: #fff;
+    padding: 28px 0;
+    position: relative;
+  }
+  .tt-site .ticker::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--accent);
+  }
+  .tt-site .ticker .wrap {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .tt-site .ticker .stat {
+    padding: 6px 24px;
+    border-right: 1px solid rgba(255,255,255,0.1);
+  }
+  .tt-site .ticker .stat:last-child { border-right: none; }
+  .tt-site .ticker .stat b {
+    display: block;
+    font-family: var(--disp);
+    font-weight: 900;
+    font-size: clamp(34px, 4vw, 50px);
+    line-height: 1;
+    color: var(--accent);
+    letter-spacing: -0.03em;
+  }
+  .tt-site .ticker .stat span {
+    display: block;
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--jt-gray-3);
+    line-height: 1.5;
+  }
+
+  /* ===== Commitments =====
+     Editorial numbered-list treatment. Reads like a manifesto / contract,
+     not a marketing card grid. Each row has hairline dividers between for
+     a serious, documentary feel. */
+  .tt-site .commit-list {
+    display: flex;
+    flex-direction: column;
+    max-width: 880px;
+    margin: 12px auto 0;
+  }
+  .tt-site .commit {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    gap: 28px;
+    padding: 32px 0;
+    border-top: 1px solid var(--line);
+    align-items: start;
+  }
+  .tt-site .commit:first-child {
+    border-top: none;
+    padding-top: 12px;
+  }
+  .tt-site .commit-num {
+    font-family: var(--mono);
+    font-size: 15px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    font-weight: 500;
+    padding-top: 6px;
+  }
+  .tt-site .commit-body h3 {
+    font-family: var(--disp);
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    margin: 0 0 10px;
+    line-height: 1.25;
+  }
+  .tt-site .commit-body p {
+    color: var(--jt-gray-6);
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* ===== Tools / integrations strip =====
+     Each tool card uses a generic category icon (camera, ledger, funnel, etc.),
+     not a reproduced brand mark. Cards are uniform navy on white; JobTread is
+     highlighted in orange as the centerpiece. */
+  .tt-site .tools-strip {
+    background: var(--paper-dim);
+    padding: 80px 0 88px;
+    border-top: 1px solid var(--line-light);
+    border-bottom: 1px solid var(--line-light);
+  }
+  .tt-site .tools-strip .strip-head {
+    max-width: 740px;
+    margin: 0 auto 48px;
+    text-align: center;
+  }
+  .tt-site .tools-strip .strip-head h2 {
+    font-size: 34px;
+    margin: 12px 0 14px;
+    line-height: 1.15;
+  }
+  .tt-site .tools-strip .strip-head .lede {
+    color: var(--jt-gray-6);
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+  }
+  .tt-site .tools-strip .tool-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    max-width: 1040px;
+    margin: 0 auto;
+  }
+  .tt-site .tools-strip .tool-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 26px 18px 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+    transition: border-color .2s, transform .2s, box-shadow .2s;
+  }
+  .tt-site .tools-strip .tool-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(28, 53, 94, 0.08);
+  }
+  .tt-site .tools-strip .tool-card .ic {
+    width: 44px;
+    height: 44px;
+    color: var(--surface-dark);
+    display: grid;
+    place-items: center;
+  }
+  .tt-site .tools-strip .tool-card .ic svg {
+    width: 100%;
+    height: 100%;
+  }
+  .tt-site .tools-strip .tool-card b {
+    font-family: var(--disp);
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    line-height: 1.2;
+  }
+  .tt-site .tools-strip .tool-card span {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--jt-gray-5);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.4;
+  }
+  .tt-site .tools-strip .tool-card.lead {
+    border-color: var(--accent);
+    background: linear-gradient(to bottom, rgba(255, 86, 0, 0.05), #fff 60%);
+  }
+  .tt-site .tools-strip .tool-card.lead .ic { color: var(--accent); }
+  .tt-site .tools-strip .tool-card.lead b { color: var(--accent); }
+  .tt-site .tools-strip .strip-foot {
+    max-width: 740px;
+    margin: 32px auto 0;
+    text-align: center;
+    font-size: 14px;
+    color: var(--jt-gray-6);
+    line-height: 1.65;
+  }
+  .tt-site .tools-strip .strip-foot b {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  /* ===== Sections ===== */
+  .tt-site .sec {
+    padding: 96px 0;
+  }
+  .tt-site .sec.dark {
+    background: var(--surface-dark);
+    color: #fff;
+  }
+  .tt-site .sec.dark .lede { color: var(--jt-gray-3); }
+  .tt-site .sec.dim {
+    background: var(--paper-dim);
+  }
+  .tt-site .sec-head {
+    max-width: 720px;
+    margin-bottom: 56px;
+  }
+  .tt-site .sec-head h2 {
+    margin-top: 18px;
+    margin-bottom: 18px;
+  }
+  .tt-site .sec-head h2 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  /* ===== "Sound familiar?" pain quotes ===== */
+  .tt-site .pain-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  .tt-site .pain-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--jt-gray-3);
+    border-radius: 4px;
+    padding: 26px 24px;
+    transition: border-color .2s, transform .2s;
+    position: relative;
+  }
+  .tt-site .pain-card:hover {
+    border-left-color: var(--accent);
+    transform: translateY(-3px);
+  }
+  .tt-site .pain-card .quote-mark {
+    font-family: var(--disp);
+    font-size: 56px;
+    line-height: 0.5;
+    color: var(--accent);
+    opacity: 0.25;
+    position: absolute;
+    top: 24px;
+    right: 18px;
+  }
+  .tt-site .pain-card p {
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--jt-primary-gray);
+    font-style: italic;
+    margin-bottom: 18px;
+  }
+  .tt-site .pain-card .sig {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--jt-gray-5);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ===== Paths / segmentation ===== */
+  .tt-site .paths-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+    margin-top: 8px;
+  }
+  .tt-site .path {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 32px 28px 28px;
+    position: relative;
+    transition: transform .25s, box-shadow .25s;
+    display: flex;
+    flex-direction: column;
+  }
+  .tt-site .path:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 40px rgba(14,15,19,0.08);
+  }
+  .tt-site .path .num {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+  .tt-site .path h3 {
+    margin-bottom: 12px;
+    font-size: 26px;
+  }
+  .tt-site .path p {
+    color: var(--jt-gray-6);
+    font-size: 15.5px;
+    line-height: 1.55;
+    margin-bottom: 18px;
+    flex: 1;
+  }
+  /* Price + timeline meta on each path card.
+     Mono treatment so it reads as factual / spec-card-like, not marketing. */
+  .tt-site .path .path-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    margin-bottom: 18px;
+    flex: 0 0 auto;
+  }
+  .tt-site .path .path-meta .price {
+    color: var(--ink);
+    font-weight: 700;
+  }
+  .tt-site .path .path-meta .dot {
+    color: var(--jt-gray-4);
+    font-weight: 400;
+  }
+  .tt-site .path .path-meta .time {
+    color: var(--jt-gray-5);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 10.5px;
+  }
+  .tt-site .path .arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+    margin-top: auto;
+  }
+  .tt-site .path .arrow:hover { gap: 12px; }
+
+  /* ===== Why me ===== */
+  .tt-site .why {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 64px;
+    align-items: start;
+  }
+  .tt-site .why .pull {
+    font-family: var(--disp);
+    font-weight: 800;
+    font-size: clamp(28px, 2.8vw, 38px);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .tt-site .why .pull em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .tt-site .why .body p {
+    margin-bottom: 18px;
+    color: var(--jt-gray-6);
+    font-size: 17px;
+    line-height: 1.65;
+  }
+  .tt-site .why .body p strong { color: var(--ink); font-weight: 700; }
+  .tt-site .why .body p:first-child { font-size: 18px; color: var(--ink); }
+  .tt-site .chips {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin-top: 24px;
+  }
+  .tt-site .chip {
+    background: var(--paper-dim);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 7px 11px;
+    border-radius: 3px;
+  }
+  .tt-site .chip.accent {
+    background: var(--surface-dark);
+    color: var(--accent);
+    border-color: var(--surface-dark);
+  }
+
+  /* ===== Services ===== */
+  .tt-site .svc {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+  }
+  .tt-site .svc-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 30px 26px;
+    transition: border-color .2s, transform .2s;
+  }
+  .tt-site .svc-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+  }
+  .tt-site .svc-card .ico {
+    width: 44px;
+    height: 44px;
+    border-radius: 6px;
+    background: var(--surface-dark);
+    color: var(--accent);
+    display: grid;
+    place-items: center;
+    margin-bottom: 18px;
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .tt-site .svc-card h3 {
+    margin-bottom: 10px;
+    font-size: 21px;
+  }
+  .tt-site .svc-card p {
+    font-size: 15.5px;
+    color: var(--jt-gray-6);
+    line-height: 1.6;
+  }
+
+  /* ===== Ways (DFY/DWY) ===== */
+  .tt-site .ways {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+  }
+  .tt-site .way {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 36px 32px;
+    position: relative;
+  }
+  .tt-site .way.alt {
+    background: var(--surface-dark);
+    color: #fff;
+    border-color: var(--surface-dark);
+  }
+  .tt-site .way .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding: 5px 10px;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    margin-bottom: 22px;
+  }
+  .tt-site .way h3 {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+  .tt-site .way p {
+    color: var(--jt-gray-6);
+    line-height: 1.6;
+    margin-bottom: 22px;
+  }
+  .tt-site .way.alt p { color: var(--jt-gray-3); }
+  .tt-site .way ul {
+    list-style: none;
+    padding: 0;
+  }
+  .tt-site .way ul li {
+    padding: 10px 0 10px 26px;
+    position: relative;
+    font-size: 15px;
+    border-top: 1px solid var(--line);
+  }
+  .tt-site .way.alt ul li {
+    border-color: var(--line-on-dark);
+  }
+  .tt-site .way ul li::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .tt-site .ways-note {
+    margin-top: 24px;
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--jt-gray-5);
+    letter-spacing: 0.04em;
+  }
+
+  /* ===== Trades grid ===== */
+  .tt-site .trades {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+  .tt-site .trade {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 22px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: border-color .2s, transform .2s;
+  }
+  .tt-site .trade:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .tt-site .trade .num {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--jt-gray-5);
+    letter-spacing: 0.08em;
+    min-width: 28px;
+  }
+  .tt-site .trade .name {
+    font-family: var(--disp);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--ink);
+  }
+
+  /* ===== Expertise showcase ===== */
+  .tt-site .expertise-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+  .tt-site .exp-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 32px 28px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s, background .2s;
+  }
+  /* Top accent bar — alternates orange / JobTread sky blue across the grid,
+     per JT guidance to use a secondary color to differentiate grid items. */
+  .tt-site .exp-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+  }
+  .tt-site .exp-card:nth-child(2)::before,
+  .tt-site .exp-card:nth-child(3)::before {
+    background: var(--accent-blue);
+  }
+  .tt-site .exp-card:hover {
+    border-color: var(--accent);
+    background: rgba(255,255,255,0.06);
+  }
+  .tt-site .exp-card .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    font-weight: 500;
+  }
+  .tt-site .exp-card:nth-child(2) .badge,
+  .tt-site .exp-card:nth-child(3) .badge {
+    color: var(--accent-blue);
+  }
+  .tt-site .exp-card h3 {
+    color: #fff;
+    margin-bottom: 14px;
+    font-size: 24px;
+  }
+  .tt-site .exp-card p {
+    color: var(--jt-gray-3);
+    font-size: 15.5px;
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+  .tt-site .exp-card .tech-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tt-site .exp-card .tech-list span {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--jt-gray-3);
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 4px 8px;
+    border-radius: 2px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ===== Process ===== */
+  .tt-site .process {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .tt-site .proc-step {
+    padding: 36px 28px 32px;
+    border-right: 1px solid var(--line);
+    position: relative;
+  }
+  .tt-site .proc-step:last-child { border-right: none; }
+  .tt-site .proc-step .step-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.16em;
+    margin-bottom: 18px;
+    display: block;
+  }
+  .tt-site .proc-step h3 {
+    font-size: 26px;
+    margin-bottom: 12px;
+  }
+  .tt-site .proc-step p {
+    font-size: 14.5px;
+    color: var(--jt-gray-6);
+    line-height: 1.55;
+  }
+
+  /* ===== Timeline ===== */
+  .tt-site .timeline {
+    border-left: 2px solid var(--accent);
+    padding-left: 32px;
+    margin-left: 6px;
+    margin-top: 8px;
+  }
+  .tt-site .tl-item {
+    display: grid;
+    grid-template-columns: 160px 1fr 220px;
+    gap: 28px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .tt-site .tl-item::before {
+    content: "";
+    position: absolute;
+    left: -39px;
+    top: 24px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--surface-dark);
+    border: 3px solid var(--accent);
+  }
+  .tt-site .tl-item:last-child { border-bottom: none; }
+  .tt-site .tl-yr {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--jt-gray-5);
+    letter-spacing: 0.1em;
+    padding-top: 4px;
+  }
+  .tt-site .tl-role {
+    display: flex;
+    flex-direction: column;
+  }
+  .tt-site .tl-role b {
+    font-family: var(--disp);
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .tt-site .tl-role small {
+    color: var(--jt-gray-6);
+    font-size: 14px;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  .tt-site .tl-co {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+    text-align: right;
+    align-self: start;
+    padding-top: 6px;
+  }
+
+  /* ===== Contact ===== */
+  .tt-site .contact-section {
+    background: var(--surface-dark);
+    color: #fff;
+    padding: 96px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .tt-site .contact-section::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 80% 20%, rgba(255,86,0,0.18), transparent 50%),
+      radial-gradient(circle at 10% 90%, rgba(33,150,243,0.22), transparent 55%);
+    pointer-events: none;
+  }
+  .tt-site .contact-section .wrap {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 56px;
+    align-items: start;
+  }
+  .tt-site .contact-section h2 {
+    color: #fff;
+    margin-top: 18px;
+    margin-bottom: 22px;
+  }
+  .tt-site .contact-section h2 em {
+    color: var(--accent);
+    font-style: normal;
+  }
+  .tt-site .contact-section .lede { color: var(--jt-gray-3); margin-bottom: 28px; }
+
+  /* Contact form embed placeholder */
+  .tt-site .form-card {
+    background: #fff;
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 36px 32px;
+    border: 1px solid var(--accent);
+    position: relative;
+  }
+  .tt-site .form-card .ey { color: var(--accent); }
+  .tt-site .form-card h3 {
+    margin-top: 12px;
+    margin-bottom: 8px;
+  }
+  .tt-site .form-card p {
+    font-size: 14.5px;
+    color: var(--jt-gray-6);
+    margin-bottom: 24px;
+  }
+  .tt-site .contact-direct {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 26px;
+  }
+  .tt-site .contact-direct a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: #fff;
+    text-decoration: none;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    transition: border-color .2s, background .2s;
+  }
+  .tt-site .contact-direct a:hover {
+    border-color: var(--accent);
+    background: rgba(255,86,0,0.06);
+  }
+  .tt-site .contact-direct a .lbl {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--jt-gray-5);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    min-width: 70px;
+  }
+  .tt-site .contact-direct a .val {
+    font-weight: 500;
+    font-size: 15px;
+  }
+
+  /* ===== Footer ===== */
+  .tt-site footer {
+    background: #12233f;
+    color: var(--jt-gray-4);
+    padding: 48px 0 36px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .tt-site footer .wrap {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 36px;
+    margin-bottom: 36px;
+  }
+  .tt-site footer h4 {
+    color: #fff;
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .tt-site footer p, .tt-site footer a {
+    color: var(--jt-gray-4);
+    font-size: 14px;
+    line-height: 1.6;
+    text-decoration: none;
+  }
+  .tt-site footer a:hover { color: var(--accent); }
+  .tt-site footer .foot-logo {
+    height: 54px;
+    color: #fff;          /* white "TECHNOLOGY" on deep-navy footer */
+    margin-bottom: 14px;
+    display: block;
+  }
+  .tt-site footer .foot-brand span {
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--jt-gray-5);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .tt-site footer .legal {
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--jt-gray-5);
+    letter-spacing: 0.06em;
+  }
+
+  /* ===== Reveal animations ===== */
+  .tt-site .rv {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity .8s cubic-bezier(.2,.7,.2,1), transform .8s cubic-bezier(.2,.7,.2,1);
+  }
+  .tt-site .rv.in { opacity: 1; transform: none; }
+  .tt-site .d1 { transition-delay: 0.07s; }
+  .tt-site .d2 { transition-delay: 0.14s; }
+  .tt-site .d3 { transition-delay: 0.21s; }
+  .tt-site .d4 { transition-delay: 0.28s; }
+
+  @keyframes ttup {
+    from { opacity: 0; transform: translateY(28px); }
+    to { opacity: 1; transform: none; }
+  }
+  .tt-site .hero .ld {
+    opacity: 0;
+    animation: ttup 0.9s cubic-bezier(.2,.7,.2,1) forwards;
+  }
+  .tt-site .hero .ld.l1 { animation-delay: 0.05s; }
+  .tt-site .hero .ld.l2 { animation-delay: 0.18s; }
+  .tt-site .hero .ld.l3 { animation-delay: 0.32s; }
+  .tt-site .hero .ld.l4 { animation-delay: 0.45s; }
+  .tt-site .hero .ld.l5 { animation-delay: 0.58s; }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 1024px) {
+    .tt-site .hero .wrap,
+    .tt-site .why,
+    .tt-site .contact-section .wrap { grid-template-columns: 1fr; gap: 40px; }
+    .tt-site .ticker .wrap,
+    .tt-site .pain-grid,
+    .tt-site .paths-grid,
+    .tt-site .svc,
+    .tt-site .expertise-grid,
+    .tt-site .process { grid-template-columns: repeat(2, 1fr); }
+    .tt-site .trades { grid-template-columns: repeat(3, 1fr); }
+    .tt-site .tools-strip .tool-grid { grid-template-columns: repeat(2, 1fr); }
+    .tt-site .proc-step { border-right: none; border-bottom: 1px solid var(--line); }
+    .tt-site .proc-step:nth-last-child(-n+2) { border-bottom: none; }
+    .tt-site .proc-step:nth-child(odd) { border-right: 1px solid var(--line); }
+    .tt-site .ways { grid-template-columns: 1fr; }
+    .tt-site footer .wrap { grid-template-columns: 1fr 1fr; }
+    .tt-site nav.links a:not(.btn) { display: none; }
+  }
+  @media (max-width: 720px) {
+    .tt-site .ticker .wrap,
+    .tt-site .pain-grid,
+    .tt-site .paths-grid,
+    .tt-site .svc,
+    .tt-site .expertise-grid,
+    .tt-site .process,
+    .tt-site .trades { grid-template-columns: 1fr; }
+    .tt-site .tools-strip .tool-grid { grid-template-columns: repeat(2, 1fr); }
+    .tt-site .tools-strip { padding: 60px 0 64px; }
+    .tt-site .tools-strip .strip-head h2 { font-size: 26px; }
+    .tt-site .commit {
+      grid-template-columns: 1fr;
+      gap: 10px;
+      padding: 28px 0;
+    }
+    .tt-site .commit-num { padding-top: 0; }
+    .tt-site .commit-body h3 { font-size: 19px; }
+    .tt-site .ticker .stat {
+      border-right: none;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding: 20px 24px;
+    }
+    .tt-site .ticker .stat:last-child { border-bottom: none; }
+    .tt-site .proc-step,
+    .tt-site .proc-step:nth-child(odd) {
+      border-right: none;
+      border-bottom: 1px solid var(--line);
+    }
+    .tt-site .proc-step:last-child { border-bottom: none; }
+    .tt-site .sec { padding: 68px 0; }
+    .tt-site .hero { padding: 64px 0 56px; }
+    .tt-site .tl-item { grid-template-columns: 1fr; gap: 8px; }
+    .tt-site .tl-co { text-align: left; }
+    .tt-site footer .wrap { grid-template-columns: 1fr; }
+    .tt-site .nav-logo { height: 40px; }
+    .tt-site footer .foot-logo { height: 44px; }
+  }
+  </style>
+</head>
+<body>
+
+<div class="tt-site">
+
+<!-- ===== Inline logo sprite — referenced via <use href="#ttLogo"/> ===== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="ttLogo" viewBox="150 540 1200 420">
+    <defs><g/><clipPath id="3efcb732c3"><path d="M 150 545.878906 L 1350 545.878906 L 1350 840.175781 L 150 840.175781 Z M 150 545.878906 " clip-rule="nonzero"/></clipPath><clipPath id="ff25be46de"><path d="M 0 0.878906 L 1200 0.878906 L 1200 295.175781 L 0 295.175781 Z M 0 0.878906 " clip-rule="nonzero"/></clipPath><clipPath id="f98a3de2d4"><rect x="0" width="1200" y="0" height="296"/></clipPath><clipPath id="b951345b25"><rect x="0" width="577" y="0" height="85"/></clipPath></defs><g clip-path="url(#3efcb732c3)"><g transform="matrix(1, 0, 0, 1, 150, 545)"><g clip-path="url(#f98a3de2d4)"><g clip-path="url(#ff25be46de)"><path fill="#ff5600" d="M 0 0.878906 L 1200.183594 0.878906 L 1200.183594 295.175781 L 0 295.175781 Z M 0 0.878906 " fill-opacity="1" fill-rule="nonzero"/></g></g></g></g><g fill="#ffffff" fill-opacity="1"><g transform="translate(168.988232, 741.70662)"><g><path d="M 4.890625 -114.921875 L 106.109375 -114.921875 L 106.109375 -92.09375 L 68.625 -92.09375 L 68.625 0 L 42.546875 0 L 42.546875 -92.09375 L 4.890625 -92.09375 Z M 4.890625 -114.921875 "/></g></g></g><g fill="#ffffff" fill-opacity="1"><g transform="translate(286.019624, 741.70662)"><g><path d="M 35.859375 0 L 9.78125 0 L 9.78125 -114.921875 L 54.28125 -114.921875 C 61.125 -114.921875 67.613281 -114.429688 73.75 -113.453125 C 79.894531 -112.472656 85.359375 -110.8125 90.140625 -108.46875 C 94.921875 -106.132812 98.671875 -102.875 101.390625 -98.6875 C 104.109375 -94.507812 105.46875 -89.210938 105.46875 -82.796875 C 105.46875 -76.492188 104 -71.578125 101.0625 -68.046875 C 98.125 -64.515625 94.425781 -61.929688 89.96875 -60.296875 C 85.519531 -58.671875 80.957031 -57.585938 76.28125 -57.046875 L 76.28125 -50.53125 L 93.078125 -50.53125 C 102.304688 -50.53125 106.921875 -45.910156 106.921875 -36.671875 L 106.921875 0 L 80.84375 0 L 80.84375 -40.421875 L 35.859375 -40.421875 Z M 35.859375 -92.09375 L 35.859375 -63.25 L 54.28125 -63.25 C 59.5 -63.25 63.976562 -63.4375 67.71875 -63.8125 C 71.46875 -64.195312 74.347656 -65.394531 76.359375 -67.40625 C 78.367188 -69.414062 79.375 -72.8125 79.375 -77.59375 C 79.375 -82.476562 78.367188 -85.925781 76.359375 -87.9375 C 74.347656 -89.945312 71.46875 -91.140625 67.71875 -91.515625 C 63.976562 -91.898438 59.5 -92.09375 54.28125 -92.09375 Z M 35.859375 -92.09375 "/></g></g></g><g fill="#ffffff" fill-opacity="1"><g transform="translate(408.755896, 741.70662)"><g><path d="M 123.390625 0 L 96.984375 0 L 87.53125 -28.6875 L 39.125 -28.6875 L 29.671875 0 L 3.265625 0 L 42.046875 -114.921875 L 84.4375 -114.921875 Z M 59.984375 -92.09375 L 46.625 -51.515625 L 79.875 -51.515625 L 66.5 -92.09375 Z M 59.984375 -92.09375 "/></g></g></g><g fill="#ffffff" fill-opacity="1"><g transform="translate(541.434882, 741.70662)"><g><path d="M 52.15625 -114.921875 C 58.238281 -114.921875 64.296875 -114.484375 70.328125 -113.609375 C 76.359375 -112.742188 82.035156 -111.171875 87.359375 -108.890625 C 92.691406 -106.609375 97.421875 -103.347656 101.546875 -99.109375 C 105.679688 -94.867188 108.914062 -89.351562 111.25 -82.5625 C 113.582031 -75.769531 114.75 -67.425781 114.75 -57.53125 C 114.75 -47.644531 113.582031 -39.304688 111.25 -32.515625 C 108.914062 -25.722656 105.679688 -20.179688 101.546875 -15.890625 C 97.421875 -11.597656 92.691406 -8.3125 87.359375 -6.03125 C 82.035156 -3.75 76.359375 -2.171875 70.328125 -1.296875 C 64.296875 -0.429688 58.238281 0 52.15625 0 L 9.78125 0 L 9.78125 -114.921875 Z M 35.859375 -22.8125 L 52.15625 -22.8125 C 57.269531 -22.8125 62.023438 -23.082031 66.421875 -23.625 C 70.828125 -24.175781 74.710938 -25.535156 78.078125 -27.703125 C 81.441406 -29.878906 84.046875 -33.332031 85.890625 -38.0625 C 87.742188 -42.789062 88.671875 -49.28125 88.671875 -57.53125 C 88.671875 -65.789062 87.742188 -72.253906 85.890625 -76.921875 C 84.046875 -81.597656 81.441406 -85.023438 78.078125 -87.203125 C 74.710938 -89.378906 70.828125 -90.738281 66.421875 -91.28125 C 62.023438 -91.820312 57.269531 -92.09375 52.15625 -92.09375 L 35.859375 -92.09375 Z M 35.859375 -22.8125 "/></g></g></g><g fill="#ffffff" fill-opacity="1"><g transform="translate(670.365016, 741.70662)"><g><path d="M 91.765625 0 L 9.78125 0 L 9.78125 -114.921875 L 91.765625 -114.921875 L 91.765625 -92.09375 L 35.859375 -92.09375 L 35.859375 -68.953125 L 83.625 -68.953125 L 83.625 -46.125 L 35.859375 -46.125 L 35.859375 -22.8125 L 91.765625 -22.8125 Z M 91.765625 0 "/></g></g></g><g fill="#ffffff" fill-opacity="1"><g transform="translate(774.68271, 741.70662)"><g><path d="M 111 -31.625 C 111 -25.101562 109.34375 -19.34375 106.03125 -14.34375 C 102.71875 -9.34375 97.472656 -5.429688 90.296875 -2.609375 C 83.128906 0.210938 73.625 1.625 61.78125 1.625 C 47.976562 1.625 36.921875 -0.191406 28.609375 -3.828125 C 20.296875 -7.472656 14.265625 -12.71875 10.515625 -19.5625 C 6.765625 -26.40625 4.890625 -34.664062 4.890625 -44.34375 L 30.96875 -44.34375 C 30.96875 -35.539062 33.382812 -29.476562 38.21875 -26.15625 C 43.0625 -22.84375 51.1875 -21.1875 62.59375 -21.1875 C 70.957031 -21.1875 76.769531 -22.109375 80.03125 -23.953125 C 83.289062 -25.804688 84.921875 -28.253906 84.921875 -31.296875 C 84.921875 -34.117188 83.507812 -36.476562 80.6875 -38.375 C 77.863281 -40.28125 74.140625 -42.078125 69.515625 -43.765625 C 64.898438 -45.453125 59.765625 -47.21875 54.109375 -49.0625 C 48.023438 -51.125 42.320312 -53.160156 37 -55.171875 C 31.675781 -57.179688 27.003906 -59.546875 22.984375 -62.265625 C 18.960938 -64.984375 15.8125 -68.242188 13.53125 -72.046875 C 11.25 -75.847656 10.109375 -80.578125 10.109375 -86.234375 C 10.109375 -96.003906 13.9375 -103.5 21.59375 -108.71875 C 29.257812 -113.9375 40.476562 -116.546875 55.25 -116.546875 C 66.988281 -116.546875 76.632812 -114.722656 84.1875 -111.078125 C 91.738281 -107.441406 97.304688 -102.550781 100.890625 -96.40625 C 104.484375 -90.269531 106.28125 -83.398438 106.28125 -75.796875 L 80.203125 -75.796875 C 80.203125 -80.460938 79.113281 -84.097656 76.9375 -86.703125 C 74.757812 -89.316406 71.796875 -91.140625 68.046875 -92.171875 C 64.296875 -93.203125 60.03125 -93.71875 55.25 -93.71875 C 49.382812 -93.71875 44.738281 -93.039062 41.3125 -91.6875 C 37.894531 -90.332031 36.1875 -88.1875 36.1875 -85.25 C 36.1875 -83.507812 36.675781 -82.039062 37.65625 -80.84375 C 38.632812 -79.65625 40.644531 -78.378906 43.6875 -77.015625 C 46.726562 -75.660156 51.289062 -73.953125 57.375 -71.890625 C 61.613281 -70.472656 66.148438 -68.921875 70.984375 -67.234375 C 75.816406 -65.554688 80.597656 -63.65625 85.328125 -61.53125 C 90.054688 -59.414062 94.347656 -56.941406 98.203125 -54.109375 C 102.066406 -51.285156 105.164062 -48.023438 107.5 -44.328125 C 109.832031 -40.640625 111 -36.40625 111 -31.625 Z M 111 -31.625 "/></g></g></g><g fill="#ffffff" fill-opacity="1"><g transform="translate(896.60398, 741.70662)"><g><path d="M 84.4375 -22.8125 L 101.21875 -114.921875 L 152.5625 -114.921875 L 152.5625 0 L 126.484375 0 L 126.484375 -92.09375 L 122.40625 -92.09375 L 104.8125 0 L 57.53125 0 L 39.9375 -92.09375 L 35.859375 -92.09375 L 35.859375 0 L 9.78125 0 L 9.78125 -114.921875 L 61.125 -114.921875 L 77.90625 -22.8125 Z M 84.4375 -22.8125 "/></g></g></g><g fill="#ffffff" fill-opacity="1"><g transform="translate(1064.979145, 741.70662)"><g><path d="M 123.390625 0 L 96.984375 0 L 87.53125 -28.6875 L 39.125 -28.6875 L 29.671875 0 L 3.265625 0 L 42.046875 -114.921875 L 84.4375 -114.921875 Z M 59.984375 -92.09375 L 46.625 -51.515625 L 79.875 -51.515625 L 66.5 -92.09375 Z M 59.984375 -92.09375 "/></g></g></g><g fill="#ffffff" fill-opacity="1"><g transform="translate(1197.658184, 741.70662)"><g><path d="M 97.46875 -22.8125 L 97.46875 -114.921875 L 123.546875 -114.921875 L 123.546875 0 L 72.203125 0 L 43.1875 -92.09375 L 35.859375 -92.09375 L 35.859375 0 L 9.78125 0 L 9.78125 -114.921875 L 61.125 -114.921875 L 90.140625 -22.8125 Z M 97.46875 -22.8125 "/></g></g></g><g transform="matrix(1, 0, 0, 1, 464, 870)"><g clip-path="url(#b951345b25)"><g fill="currentColor" fill-opacity="1"><g transform="translate(3.029505, 66.921872)"><g><path d="M 16.046875 -40.109375 L 0.265625 -40.109375 L 0.265625 -47.59375 L 40.65625 -47.59375 L 40.65625 -40.109375 L 24.875 -40.109375 L 24.875 0 L 16.046875 0 Z M 16.046875 -40.109375 "/></g></g></g><g fill="currentColor" fill-opacity="1"><g transform="translate(51.426657, 66.921872)"><g><path d="M 42.078125 -7.40625 L 42.078125 0 L 6.390625 0 L 6.390625 -47.59375 L 41.125 -47.59375 L 41.125 -40.171875 L 15.234375 -40.171875 L 15.234375 -27.8125 L 38.203125 -27.8125 L 38.203125 -20.53125 L 15.234375 -20.53125 L 15.234375 -7.40625 Z M 42.078125 -7.40625 "/></g></g></g><g fill="currentColor" fill-opacity="1"><g transform="translate(104.445664, 66.921872)"><g><path d="M 28.421875 0.6875 C 23.617188 0.6875 19.273438 -0.363281 15.390625 -2.46875 C 11.515625 -4.582031 8.476562 -7.5 6.28125 -11.21875 C 4.082031 -14.9375 2.984375 -19.128906 2.984375 -23.796875 C 2.984375 -28.460938 4.09375 -32.65625 6.3125 -36.375 C 8.539062 -40.09375 11.59375 -43.003906 15.46875 -45.109375 C 19.34375 -47.210938 23.679688 -48.265625 28.484375 -48.265625 C 32.378906 -48.265625 35.9375 -47.582031 39.15625 -46.21875 C 42.375 -44.863281 45.09375 -42.894531 47.3125 -40.3125 L 41.609375 -34.9375 C 38.160156 -38.65625 33.921875 -40.515625 28.890625 -40.515625 C 25.628906 -40.515625 22.707031 -39.800781 20.125 -38.375 C 17.539062 -36.945312 15.519531 -34.960938 14.0625 -32.421875 C 12.613281 -29.890625 11.890625 -27.015625 11.890625 -23.796875 C 11.890625 -20.578125 12.613281 -17.695312 14.0625 -15.15625 C 15.519531 -12.625 17.539062 -10.644531 20.125 -9.21875 C 22.707031 -7.789062 25.628906 -7.078125 28.890625 -7.078125 C 33.921875 -7.078125 38.160156 -8.957031 41.609375 -12.71875 L 47.3125 -7.28125 C 45.09375 -4.695312 42.363281 -2.722656 39.125 -1.359375 C 35.882812 0.00390625 32.316406 0.6875 28.421875 0.6875 Z M 28.421875 0.6875 "/></g></g></g><g fill="currentColor" fill-opacity="1"><g transform="translate(161.338862, 66.921872)"><g><path d="M 48.671875 -47.59375 L 48.671875 0 L 39.84375 0 L 39.84375 -20.390625 L 15.234375 -20.390625 L 15.234375 0 L 6.390625 0 L 6.390625 -47.59375 L 15.234375 -47.59375 L 15.234375 -27.9375 L 39.84375 -27.9375 L 39.84375 -47.59375 Z M 48.671875 -47.59375 "/></g></g></g><g fill="currentColor" fill-opacity="1"><g transform="translate(223.873449, 66.921872)"><g><path d="M 48.671875 -47.59375 L 48.671875 0 L 41.40625 0 L 15.15625 -32.21875 L 15.15625 0 L 6.390625 0 L 6.390625 -47.59375 L 13.671875 -47.59375 L 39.90625 -15.359375 L 39.90625 -47.59375 Z M 48.671875 -47.59375 "/></g></g></g><g fill="currentColor" fill-opacity="1"><g transform="translate(286.408036, 66.921872)"><g><path d="M 28.625 0.6875 C 23.769531 0.6875 19.394531 -0.363281 15.5 -2.46875 C 11.601562 -4.582031 8.539062 -7.507812 6.3125 -11.25 C 4.09375 -14.988281 2.984375 -19.171875 2.984375 -23.796875 C 2.984375 -28.421875 4.09375 -32.601562 6.3125 -36.34375 C 8.539062 -40.082031 11.601562 -43.003906 15.5 -45.109375 C 19.394531 -47.210938 23.769531 -48.265625 28.625 -48.265625 C 33.46875 -48.265625 37.835938 -47.210938 41.734375 -45.109375 C 45.640625 -43.003906 48.703125 -40.09375 50.921875 -36.375 C 53.140625 -32.65625 54.25 -28.460938 54.25 -23.796875 C 54.25 -19.128906 53.140625 -14.9375 50.921875 -11.21875 C 48.703125 -7.5 45.640625 -4.582031 41.734375 -2.46875 C 37.835938 -0.363281 33.46875 0.6875 28.625 0.6875 Z M 28.625 -7.078125 C 31.789062 -7.078125 34.644531 -7.789062 37.1875 -9.21875 C 39.726562 -10.644531 41.722656 -12.632812 43.171875 -15.1875 C 44.617188 -17.75 45.34375 -20.617188 45.34375 -23.796875 C 45.34375 -26.960938 44.617188 -29.828125 43.171875 -32.390625 C 41.722656 -34.953125 39.726562 -36.945312 37.1875 -38.375 C 34.644531 -39.800781 31.789062 -40.515625 28.625 -40.515625 C 25.445312 -40.515625 22.585938 -39.800781 20.046875 -38.375 C 17.515625 -36.945312 15.519531 -34.953125 14.0625 -32.390625 C 12.613281 -29.828125 11.890625 -26.960938 11.890625 -23.796875 C 11.890625 -20.617188 12.613281 -17.75 14.0625 -15.1875 C 15.519531 -12.632812 17.515625 -10.644531 20.046875 -9.21875 C 22.585938 -7.789062 25.445312 -7.078125 28.625 -7.078125 Z M 28.625 -7.078125 "/></g></g></g><g fill="currentColor" fill-opacity="1"><g transform="translate(351.11764, 66.921872)"><g><path d="M 6.390625 -47.59375 L 15.234375 -47.59375 L 15.234375 -7.484375 L 40.109375 -7.484375 L 40.109375 0 L 6.390625 0 Z M 6.390625 -47.59375 "/></g></g></g><g fill="currentColor" fill-opacity="1"><g transform="translate(399.310858, 66.921872)"><g><path d="M 28.625 0.6875 C 23.769531 0.6875 19.394531 -0.363281 15.5 -2.46875 C 11.601562 -4.582031 8.539062 -7.507812 6.3125 -11.25 C 4.09375 -14.988281 2.984375 -19.171875 2.984375 -23.796875 C 2.984375 -28.421875 4.09375 -32.601562 6.3125 -36.34375 C 8.539062 -40.082031 11.601562 -43.003906 15.5 -45.109375 C 19.394531 -47.210938 23.769531 -48.265625 28.625 -48.265625 C 33.46875 -48.265625 37.835938 -47.210938 41.734375 -45.109375 C 45.640625 -43.003906 48.703125 -40.09375 50.921875 -36.375 C 53.140625 -32.65625 54.25 -28.460938 54.25 -23.796875 C 54.25 -19.128906 53.140625 -14.9375 50.921875 -11.21875 C 48.703125 -7.5 45.640625 -4.582031 41.734375 -2.46875 C 37.835938 -0.363281 33.46875 0.6875 28.625 0.6875 Z M 28.625 -7.078125 C 31.789062 -7.078125 34.644531 -7.789062 37.1875 -9.21875 C 39.726562 -10.644531 41.722656 -12.632812 43.171875 -15.1875 C 44.617188 -17.75 45.34375 -20.617188 45.34375 -23.796875 C 45.34375 -26.960938 44.617188 -29.828125 43.171875 -32.390625 C 41.722656 -34.953125 39.726562 -36.945312 37.1875 -38.375 C 34.644531 -39.800781 31.789062 -40.515625 28.625 -40.515625 C 25.445312 -40.515625 22.585938 -39.800781 20.046875 -38.375 C 17.515625 -36.945312 15.519531 -34.953125 14.0625 -32.390625 C 12.613281 -29.828125 11.890625 -26.960938 11.890625 -23.796875 C 11.890625 -20.617188 12.613281 -17.75 14.0625 -15.1875 C 15.519531 -12.632812 17.515625 -10.644531 20.046875 -9.21875 C 22.585938 -7.789062 25.445312 -7.078125 28.625 -7.078125 Z M 28.625 -7.078125 "/></g></g></g><g fill="currentColor" fill-opacity="1"><g transform="translate(464.020462, 66.921872)"><g><path d="M 38.890625 -24.34375 L 47.25 -24.34375 L 47.25 -5.375 C 44.800781 -3.425781 41.941406 -1.925781 38.671875 -0.875 C 35.410156 0.164062 32.0625 0.6875 28.625 0.6875 C 23.769531 0.6875 19.394531 -0.363281 15.5 -2.46875 C 11.601562 -4.582031 8.539062 -7.5 6.3125 -11.21875 C 4.09375 -14.9375 2.984375 -19.128906 2.984375 -23.796875 C 2.984375 -28.460938 4.09375 -32.65625 6.3125 -36.375 C 8.539062 -40.09375 11.613281 -43.003906 15.53125 -45.109375 C 19.457031 -47.210938 23.863281 -48.265625 28.75 -48.265625 C 32.738281 -48.265625 36.363281 -47.609375 39.625 -46.296875 C 42.894531 -44.984375 45.640625 -43.054688 47.859375 -40.515625 L 42.28125 -35.078125 C 38.65625 -38.703125 34.285156 -40.515625 29.171875 -40.515625 C 25.816406 -40.515625 22.832031 -39.8125 20.21875 -38.40625 C 17.613281 -37 15.570312 -35.023438 14.09375 -32.484375 C 12.625 -29.953125 11.890625 -27.054688 11.890625 -23.796875 C 11.890625 -20.617188 12.625 -17.757812 14.09375 -15.21875 C 15.570312 -12.6875 17.613281 -10.695312 20.21875 -9.25 C 22.832031 -7.800781 25.789062 -7.078125 29.09375 -7.078125 C 32.8125 -7.078125 36.078125 -7.890625 38.890625 -9.515625 Z M 38.890625 -24.34375 "/></g></g></g><g fill="currentColor" fill-opacity="1"><g transform="translate(523.972253, 66.921872)"><g><path d="M 26.921875 -16.796875 L 26.921875 0 L 18.078125 0 L 18.078125 -16.65625 L -0.609375 -47.59375 L 8.84375 -47.59375 L 22.78125 -24.40625 L 36.84375 -47.59375 L 45.546875 -47.59375 Z M 26.921875 -16.796875 "/></g></g></g></g></g>
+  </symbol>
+</svg>
+
+<!-- ===== NAV ===== -->
+<header class="nav">
+  <div class="wrap">
+    <a href="#top" class="brand" aria-label="Tradesman Technology — home">
+      <svg class="tt-logo nav-logo" role="img" aria-label="Tradesman Technology">
+        <use href="#ttLogo"/>
+      </svg>
+    </a>
+    <nav class="links">
+      <a href="#paths">Where You Are</a>
+      <a href="#services">Services</a>
+      <a href="#expertise">JobTread Depth</a>
+      <a href="#about">About</a>
+      <a href="#book" class="btn">Book a Call</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ===== HERO ===== -->
+<section class="hero" id="top">
+  <div class="blueprint"></div>
+  <div class="grain"></div>
+  <div class="wrap">
+    <div>
+      <span class="ey ld l1">JobTread Implementation · Optimization · Integration</span>
+      <h1 class="ld l2">Built by a tradesman.<br/>Built <em>for tradesmen.</em></h1>
+      <p class="lede ld l3">I'm Lee Barron. I co-own a construction company, and I've implemented JobTread for 20+ contractors across every trade. I make the platform fit how you actually run jobs — not the other way around. Clean job costing, integrated QuickBooks, automated office work, and a team that finally uses the software you're paying for.</p>
+      <div class="cta ld l4">
+        <a href="#book" class="btn">Book a discovery call →</a>
+        <a href="#paths" class="btn ghost">Where are you stuck?</a>
+      </div>
+      <p class="microline ld l4"><b>20+ JobTread implementations</b> &nbsp;·&nbsp; every trade &nbsp;·&nbsp; done-for-you or done-with-you</p>
+    </div>
+    <div class="spec ld l5">
+      <div class="spec-head">
+        <img class="spec-avatar" src="data:image/jpeg;base64,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" width="64" height="64" alt="Lee Barron" loading="eager" decoding="async"/>
+        <div class="spec-id">
+          <div class="nm">Lee T. Barron</div>
+          <div class="role">JobTread Implementation Specialist</div>
+        </div>
+      </div>
+      <div class="row"><span class="k">FOCUS</span><span class="v"><b>JobTread</b> · QBO · GHL · Zapier</span></div>
+      <div class="row"><span class="k">DELIVERED</span><span class="v"><b>20+ implementations</b>, every trade</span></div>
+      <div class="row"><span class="k">APPROACH</span><span class="v">Done-for-you or done-with-you, hands-on</span></div>
+      <div class="row"><span class="k">BACKGROUND</span><span class="v">15+ yrs enterprise tech consulting &amp; sales</span></div>
+      <div class="row"><span class="k">ALSO</span><span class="v">Co-owner, HBR Construction</span></div>
+      <div class="row"><span class="k">BASED</span><span class="v">Horse Branch, Kentucky</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== STAT TICKER ===== -->
+<div class="ticker">
+  <div class="wrap">
+    <div class="stat"><b>20+</b><span>JobTread client implementations delivered</span></div>
+    <div class="stat"><b>1</b><span>Lead implementer on every engagement — no junior handoffs</span></div>
+    <div class="stat"><b>15+</b><span>Years in enterprise tech consulting &amp; sales</span></div>
+    <div class="stat"><b>All</b><span>Trades served — GC, builders, remodel, specialty</span></div>
+  </div>
+</div>
+
+<!-- ===== SOUND FAMILIAR (pain quotes) ===== -->
+<section class="sec dim" id="pain">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="ey">If any of this sounds familiar</span>
+      <h2>You're not the only one — and you're <em>not the problem</em>.</h2>
+      <p class="lede" style="color:var(--jt-gray-6)">JobTread is powerful. That power is exactly what makes it hard to set up alone. These are the lines I hear on almost every first call:</p>
+    </div>
+    <div class="pain-grid">
+      <div class="pain-card rv">
+        <span class="quote-mark">"</span>
+        <p>My PM still runs the schedule in a Google Sheet. I don't blame him — he doesn't trust the one in the platform yet. So I'm paying for both.</p>
+        <span class="sig">— What I hear from underused-platform owners</span>
+      </div>
+      <div class="pain-card rv d1">
+        <span class="quote-mark">"</span>
+        <p>My bookkeeper turned off the QBO sync three months in. Said it was creating more cleanup than it saved. I know something's wired wrong — I just can't tell what.</p>
+        <span class="sig">— The QBO-sync conversation, almost every audit</span>
+      </div>
+      <div class="pain-card rv d2">
+        <span class="quote-mark">"</span>
+        <p>My lead is making up new line items on every estimate because the catalog doesn't have what he needs. We've got three versions of rough framing labor sitting in there.</p>
+        <span class="sig">— The catalog-drift problem</span>
+      </div>
+      <div class="pain-card rv">
+        <span class="quote-mark">"</span>
+        <p>We came off CoConstruct in March. Active jobs made it over. Four years of completed-job history did not. Didn't realize until I needed it for a comp.</p>
+        <span class="sig">— The migration-gap story</span>
+      </div>
+      <div class="pain-card rv d1">
+        <span class="quote-mark">"</span>
+        <p>JobTread's onboarding calls are good. They're also 45 minutes. My problem isn't a 45-minute question — it's six months of small decisions nobody's made yet.</p>
+        <span class="sig">— The pace-mismatch issue</span>
+      </div>
+      <div class="pain-card rv d2">
+        <span class="quote-mark">"</span>
+        <p>Every estimate, every change order, every AP approval waits on me. The software was supposed to fix that. So far it just makes the bottleneck more visible.</p>
+        <span class="sig">— The owner-as-bottleneck pattern</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PATHS / SEGMENTATION ===== -->
+<section class="sec" id="paths">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="ey">Pick your starting point</span>
+      <h2>Where you are <em>determines</em> what we do.</h2>
+      <p class="lede">Three common situations. Most of my work falls into one of these three buckets — and the scope of work looks different for each. Tell me which one fits and we'll talk through what makes sense.</p>
+    </div>
+    <div class="paths-grid">
+      <div class="path rv">
+        <span class="num">01 · New to JobTread</span>
+        <h3>Set it up right the first time</h3>
+        <p>You just signed up — or you're about to. You don't want to waste six months figuring out which knobs to turn. We do the full setup: account, jobs, catalog, integrations, automations. Your team starts trained, not lost.</p>
+        <p class="path-meta"><span class="price">From $2,500</span><span class="dot">·</span><span class="time">2–4 weeks typical</span></p>
+        <a href="#book" class="arrow">Plan an implementation →</a>
+      </div>
+      <div class="path rv d1">
+        <span class="num">02 · Already on it, but stuck</span>
+        <h3>Audit, fix, and finally use it</h3>
+        <p>You've been on JobTread for a while. Some things work. Most don't. Job costing's questionable, the QuickBooks sync is sketchy, your team keeps reverting to old habits. We audit what's there, fix what's broken, and finish the job.</p>
+        <p class="path-meta"><span class="price">Audit from $997</span><span class="dot">·</span><span class="time">~1 week</span></p>
+        <a href="#book" class="arrow">Book an audit →</a>
+      </div>
+      <div class="path rv d2">
+        <span class="num">03 · Switching software</span>
+        <h3>Migrate without losing the data</h3>
+        <p>Coming from CoConstruct, BuilderTrend, spreadsheets, or a custom build. The risk is in the migration — what gets carried over, what gets cleaned up, what gets left behind. We plan the cutover so you don't lose the history that matters.</p>
+        <p class="path-meta"><span class="price">Custom-quoted</span><span class="dot">·</span><span class="time">3–6 weeks typical</span></p>
+        <a href="#book" class="arrow">Plan a migration →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== WHY ME / ABOUT ===== -->
+<section class="sec dim" id="about">
+  <div class="wrap why">
+    <div class="rv">
+      <span class="ey">Why me</span>
+      <p class="pull" style="margin-top:18px">Most JobTread consultants have never priced a job, chased a sub, or sweated a draw. <em>I've done all three.</em></p>
+    </div>
+    <div class="body rv d1">
+      <p>I'm Lee Barron. Tradesman Technology is the contractor-facing side of my practice — the place I bring two careers together.</p>
+      <p>The first career: <strong>15+ years in enterprise technology consulting and sales</strong>. I closed and delivered multi-million-dollar infrastructure and security projects for Fortune 500 and Fortune 1000 customers. I opened a new market from scratch and grew it to $840K in year one. I ran an account book worth around $3M at 30% YoY growth. I'm a sales operator who knows technology — that combination matters when your system integration involves real budget conversations, change management, and an actual business case.</p>
+      <p>The second career: <strong>I co-own HBR Construction</strong>, a concrete and post-frame outfit, and run a working sawmill and livestock operation. I implemented JobTread and QuickBooks Online for my own company before I ever did it for a client. When we talk job costing, change orders, cost catalogs, or getting the field and the office on the same page — I'm not reading it off a slide. I've sweated those problems on my own jobs.</p>
+      <p>That combination is what makes a working JobTread system, not a half-finished one: someone who understands the platform deeply <em>and</em> understands the business it's supposed to run.</p>
+      <div class="chips">
+        <span class="chip accent">JobTread Power User</span>
+        <span class="chip">QBO Integration Architect</span>
+        <span class="chip">Cost Catalog Engineering</span>
+        <span class="chip">Data Migration</span>
+        <span class="chip">GoHighLevel Operator</span>
+        <span class="chip">Zapier Automations</span>
+        <span class="chip">Field-Side Operator</span>
+        <span class="chip">Enterprise Sales Background</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SERVICES ===== -->
+<section class="sec" id="services">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="ey">What I do</span>
+      <h2>From first login to a system that <em>runs itself</em>.</h2>
+      <p class="lede">Whether you're rolling out JobTread for the first time or fixing a setup that never quite clicked, I build the system around how your business actually operates — not the other way around.</p>
+    </div>
+    <div class="svc">
+      <div class="svc-card rv">
+        <div class="ico">01</div>
+        <h3>JobTread Implementation</h3>
+        <p>Full end-to-end setup. Accounts, jobs, estimating, scheduling, daily logs, customer portals, financials — all configured to your process, with your team trained and ready to run on day one.</p>
+      </div>
+      <div class="svc-card rv d1">
+        <div class="ico">02</div>
+        <h3>Cost Catalog Engineering</h3>
+        <p>A real cost code and cost item structure (assemblies and all), built to your trade and mapped cleanly to your chart of accounts — so estimates, budgets, and actuals reconcile across every job, every time.</p>
+      </div>
+      <div class="svc-card rv d2">
+        <div class="ico">03</div>
+        <h3>QuickBooks Online Sync</h3>
+        <p>JobTread ↔ QBO wired up the right way. Invoices, bills, payments, and classes flowing without the double entry, the duplicates, the missing job-cost detail, or the reconciliation nightmares.</p>
+      </div>
+      <div class="svc-card rv">
+        <div class="ico">04</div>
+        <h3>Data Migration</h3>
+        <p>Coming off CoConstruct, BuilderTrend, spreadsheets, or a custom solution? I plan the cutover so the history that matters comes with you and the rest gets cleaned up — not dragged in as junk.</p>
+      </div>
+      <div class="svc-card rv d1">
+        <div class="ico">05</div>
+        <h3>Integrations &amp; Automations</h3>
+        <p>Zapier flows, GoHighLevel pipelines, Google Workspace, QBO, and the tools you already run — connected so the admin work nobody wants to do twice gets done once, automatically, in the background.</p>
+      </div>
+      <div class="svc-card rv d2">
+        <div class="ico">06</div>
+        <h3>Optimization &amp; Audits</h3>
+        <p>Already on JobTread but not getting the value? I audit what's there, identify what's broken or unused, prioritize what's worth fixing, and put a working system between you and the bottleneck.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== WAYS / DFY-DWY ===== -->
+<section class="sec dim" id="ways">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="ey">How we work</span>
+      <h2>Two ways in. You pick what <em>fits</em>.</h2>
+      <p class="lede">I scope to your budget, your timeline, and how hands-on you want to be — then price it to match. Most clients land somewhere between these two; we'll sort it out on the first call.</p>
+    </div>
+    <div class="ways">
+      <div class="way rv">
+        <span class="tag">Done · For · You</span>
+        <h3>I build it. You run your business.</h3>
+        <p>I handle the full implementation end to end — discovery, catalog, integrations, migration, configuration, automations, and team training — then hand you a working system that your team already knows how to use.</p>
+        <ul>
+          <li>Full setup &amp; data migration handled for you</li>
+          <li>Integrations wired, tested, and documented</li>
+          <li>Team training &amp; written playbooks</li>
+          <li>Best when you're slammed and want it just done</li>
+        </ul>
+      </div>
+      <div class="way alt rv d1">
+        <span class="tag">Done · With · You</span>
+        <h3>We build it together. You own it.</h3>
+        <p>I guide while you and your team do the hands-on work, so the knowledge stays in-house. Structured working sessions, clear next steps, and an expert on call when you hit a wall — without the full DFY price tag.</p>
+        <ul>
+          <li>Live working sessions &amp; screen-shares</li>
+          <li>You keep full control and operator knowledge</li>
+          <li>Lower investment, faster team buy-in</li>
+          <li>Best when you want to own it long-term</li>
+        </ul>
+      </div>
+    </div>
+    <p class="ways-note rv d2">Not sure which fits? Most clients land somewhere in between — we'll sort it out on the first call.</p>
+  </div>
+</section>
+
+<!-- ===== COMMITMENTS ===== -->
+<section class="sec light" id="commitments">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="ey">Commitments</span>
+      <h2>Four things I put in writing — <em>every time.</em></h2>
+      <p class="lede">Most consultants will say these things in a sales call. I put them in your statement of work — so they're enforceable, not just rapport.</p>
+    </div>
+    <div class="commit-list">
+
+      <div class="commit rv">
+        <span class="commit-num">01</span>
+        <div class="commit-body">
+          <h3>You work with me, not a team.</h3>
+          <p>Every engagement, start to finish — discovery, build, training, handoff — is delivered by me directly. No junior associates handed your account once the deal closes. No project coordinators running the day-to-day. If at any point I need another set of hands, you'll hear it from me first and approve it before any work happens.</p>
+        </div>
+      </div>
+
+      <div class="commit rv d1">
+        <span class="commit-num">02</span>
+        <div class="commit-body">
+          <h3>Fixed scope. Fixed price. No surprise invoices.</h3>
+          <p>Every engagement starts with a written statement of work — what we're building, what's in scope, what isn't, and what it costs. If something needs to grow mid-engagement, we re-quote it together before anyone touches a keyboard. Nothing happens off-quote.</p>
+        </div>
+      </div>
+
+      <div class="commit rv d2">
+        <span class="commit-num">03</span>
+        <div class="commit-body">
+          <h3>90-day QuickBooks sync warranty.</h3>
+          <p>The QBO sync is where most implementations quietly fall apart. So I stand behind mine: for 90 days after go-live, if the sync produces a duplicate, a mismatch, or any error I should have caught at handoff, I fix it on my time. Not yours.</p>
+        </div>
+      </div>
+
+      <div class="commit rv d3">
+        <span class="commit-num">04</span>
+        <div class="commit-body">
+          <h3>30-day adoption check-in, built in.</h3>
+          <p>Thirty days after go-live, I come back for a four-hour pulse check — included in every implementation, not an add-on. We look at what your team is actually doing in the system and troubleshoot anything that isn't landing. If something we built isn't being used the way we built it, we figure out why and fix it.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== TOOLS / INTEGRATIONS STRIP ===== -->
+<!-- Icons below are category icons (camera, ledger, etc.) not brand-reproduced logos.
+     To swap in each company's official mark, replace the inner <svg>...</svg> with that
+     company's SVG from their press kit. Links provided in delivery notes. -->
+<section class="tools-strip">
+  <div class="wrap">
+    <div class="strip-head">
+      <span class="ey">Tools I implement &amp; integrate</span>
+      <h2>Built around JobTread. <em>Connected to everything else.</em></h2>
+      <p class="lede">JobTread is the foundation. The leverage comes from wiring it to the rest of the systems you already run — accounting, CRM, payments, field documentation, and increasingly, AI assistants.</p>
+    </div>
+    <div class="tool-grid">
+
+      <!-- JobTread — the foundation (highlighted) -->
+      <div class="tool-card lead rv">
+        <div class="ic">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 14 L24 6 L40 14 L40 34 L24 42 L8 34 Z"/>
+            <path d="M8 14 L24 22 L40 14"/>
+            <path d="M24 22 L24 42"/>
+          </svg>
+        </div>
+        <b>JobTread</b>
+        <span>The foundation</span>
+      </div>
+
+      <!-- QuickBooks Online — accounting -->
+      <div class="tool-card rv d1">
+        <div class="ic">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="8" y="10" width="32" height="28" rx="2"/>
+            <path d="M14 18 L34 18"/>
+            <path d="M14 24 L34 24"/>
+            <path d="M14 30 L26 30"/>
+          </svg>
+        </div>
+        <b>QuickBooks Online</b>
+        <span>Accounting &amp; job costing</span>
+      </div>
+
+      <!-- GoHighLevel — CRM / marketing automation -->
+      <div class="tool-card rv d2">
+        <div class="ic">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 10 L42 10 L30 26 L30 38 L18 42 L18 26 Z"/>
+          </svg>
+        </div>
+        <b>GoHighLevel</b>
+        <span>CRM &amp; lead nurture</span>
+      </div>
+
+      <!-- Zapier — automation -->
+      <div class="tool-card rv d3">
+        <div class="ic">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="4"/>
+            <circle cx="36" cy="12" r="4"/>
+            <circle cx="12" cy="36" r="4"/>
+            <circle cx="36" cy="36" r="4"/>
+            <path d="M16 12 L32 12"/>
+            <path d="M12 16 L12 32"/>
+            <path d="M36 16 L36 32"/>
+            <path d="M16 36 L32 36"/>
+            <path d="M15 15 L33 33"/>
+          </svg>
+        </div>
+        <b>Zapier</b>
+        <span>Workflow automation</span>
+      </div>
+
+      <!-- CompanyCam — field photo documentation -->
+      <div class="tool-card rv">
+        <div class="ic">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 14 L14 14 L17 10 L31 10 L34 14 L42 14 L42 38 L6 38 Z"/>
+            <circle cx="24" cy="26" r="7"/>
+            <circle cx="24" cy="26" r="2"/>
+          </svg>
+        </div>
+        <b>CompanyCam</b>
+        <span>Field photos &amp; docs</span>
+      </div>
+
+      <!-- Stripe — payments -->
+      <div class="tool-card rv d1">
+        <div class="ic">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="6" y="12" width="36" height="24" rx="3"/>
+            <path d="M6 20 L42 20"/>
+            <path d="M14 30 L20 30"/>
+            <path d="M26 30 L34 30"/>
+          </svg>
+        </div>
+        <b>Stripe</b>
+        <span>Online payments</span>
+      </div>
+
+      <!-- Google Workspace — email, docs, calendar -->
+      <div class="tool-card rv d2">
+        <div class="ic">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="6" y="12" width="36" height="24" rx="2"/>
+            <path d="M6 14 L24 28 L42 14"/>
+          </svg>
+        </div>
+        <b>Google Workspace</b>
+        <span>Email, Drive, Calendar</span>
+      </div>
+
+      <!-- JobTread MCP — native AI connector, configured to the client's AI assistant of choice -->
+      <div class="tool-card rv d3">
+        <div class="ic">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M24 6 L26 22 L42 24 L26 26 L24 42 L22 26 L6 24 L22 22 Z"/>
+          </svg>
+        </div>
+        <b>JobTread MCP</b>
+        <span>AI connector setup</span>
+      </div>
+
+    </div>
+    <p class="strip-foot">
+      Also wired up where it makes sense: <b>supplier catalogs</b> (Home Depot Pro, Lowe's Pro, distributor pricing), <b>e-signature</b> (DocuSign, JobTread native), and <b>SMS &amp; voice</b>. JobTread's <b>native MCP connector</b> now exposes your data to any AI assistant you choose — Claude, ChatGPT, or whichever your team already uses — and I configure it cleanly to your stack.
+    </p>
+  </div>
+</section>
+
+<!-- ===== TRADES ===== -->
+<section class="sec" id="trades">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="ey">Trades served</span>
+      <h2>Every trade has its own way of estimating, scheduling, and billing.</h2>
+      <p class="lede">The platform is one thing. Making it fit how <em>your</em> trade actually runs jobs is another. I've delivered implementations across all of these — and the cost catalog, workflow, and integrations look different in each.</p>
+    </div>
+    <div class="trades">
+      <div class="trade rv"><span class="num">01</span><span class="name">General Contractors</span></div>
+      <div class="trade rv d1"><span class="num">02</span><span class="name">Custom Home Builders</span></div>
+      <div class="trade rv d2"><span class="num">03</span><span class="name">Remodelers</span></div>
+      <div class="trade rv d3"><span class="num">04</span><span class="name">Pool Builders</span></div>
+      <div class="trade rv"><span class="num">05</span><span class="name">Roofers &amp; Restoration</span></div>
+      <div class="trade rv d1"><span class="num">06</span><span class="name">Concrete &amp; Foundations</span></div>
+      <div class="trade rv d2"><span class="num">07</span><span class="name">Post-Frame &amp; Pole Barn</span></div>
+      <div class="trade rv d3"><span class="num">08</span><span class="name">Outdoor Living &amp; Hardscape</span></div>
+      <div class="trade rv"><span class="num">09</span><span class="name">Spec &amp; Production Builders</span></div>
+      <div class="trade rv d1"><span class="num">10</span><span class="name">Commercial GCs</span></div>
+      <div class="trade rv d2"><span class="num">11</span><span class="name">Specialty Subcontractors</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== EXPERTISE SHOWCASE (DARK) ===== -->
+<section class="sec dark" id="expertise">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="ey">JobTread depth</span>
+      <h2 style="color:#fff;">Deep on the platform. Where most consultants <em>stop</em>, I start.</h2>
+      <p class="lede">JobTread is wide. Most consultants set up jobs and a few estimates and call it done. The value lives one layer deeper — in the catalog architecture, the QBO sync logic, the automation, and the integrations. These are the areas where I do the real work.</p>
+    </div>
+    <div class="expertise-grid">
+      <div class="exp-card rv">
+        <span class="badge">Cost Catalog Architecture</span>
+        <h3>The catalog is the foundation. Get it wrong and every estimate is a workaround.</h3>
+        <p>I architect cost codes and cost items for your trade — assemblies, formulas, markups, and the QBO product/service mapping all working as one structure. So when you estimate a job, the budget and the actuals land in the same place automatically.</p>
+        <div class="tech-list">
+          <span>Cost Codes</span><span>Cost Items</span><span>Assemblies</span><span>Markup Structures</span><span>QBO Mapping</span>
+        </div>
+      </div>
+      <div class="exp-card rv d1">
+        <span class="badge">QuickBooks Online Sync</span>
+        <h3>Why the QBO integration breaks — and how to actually fix it.</h3>
+        <p>The sync isn't broken by JobTread. It's broken because the mapping between cost codes and QBO products/services was never built right. I rebuild the bridge so invoices, bills, payments, and job costing flow accurately in both directions — no duplicates, no missing detail.</p>
+        <div class="tech-list">
+          <span>Product/Service Mapping</span><span>Class Tracking</span><span>Job Costing Sync</span><span>Income Accounts</span><span>Expense Accounts</span><span>Payment Reconciliation</span>
+        </div>
+      </div>
+      <div class="exp-card rv d2">
+        <span class="badge">Automation &amp; Integration</span>
+        <h3>Office work that runs itself, between the tools you already use.</h3>
+        <p>Zapier flows linking JobTread to GoHighLevel, Google Workspace, and the rest of your stack. Lead routing, job creation, document generation, automated follow-up — the admin work that should never have been manual, finally isn't.</p>
+        <div class="tech-list">
+          <span>Zapier</span><span>JobTread API</span><span>GoHighLevel</span><span>Webhooks</span><span>Google Workspace</span><span>Document Automation</span>
+        </div>
+      </div>
+      <div class="exp-card rv d3">
+        <span class="badge">Migration &amp; Cutover</span>
+        <h3>Migrations are where data goes to die. They don't have to.</h3>
+        <p>Coming off CoConstruct, BuilderTrend, spreadsheets, or a homegrown solution? I plan the cutover sequence, map the source data to JobTread's structure, validate the import before flipping the switch, and run parallel for as long as you need confidence in the new system.</p>
+        <div class="tech-list">
+          <span>CoConstruct</span><span>BuilderTrend</span><span>Excel/Sheets</span><span>Data Mapping</span><span>Parallel Operation</span><span>Validation</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PROCESS ===== -->
+<section class="sec" id="process">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="ey">The process</span>
+      <h2>Assess. Architect. Implement. <em>Optimize.</em></h2>
+      <p class="lede">A predictable engagement structure so you know what's happening at every stage — and so the implementation doesn't drag on indefinitely.</p>
+    </div>
+    <div class="process">
+      <div class="proc-step rv">
+        <span class="step-num">01 / Assess</span>
+        <h3>Map the gap</h3>
+        <p>We map your current tools, workflows, and the gaps costing you time and margin. Out of this comes a written scope with a fixed cost, a timeline, and a clear deliverable.</p>
+      </div>
+      <div class="proc-step rv d1">
+        <span class="step-num">02 / Architect</span>
+        <h3>Design the system</h3>
+        <p>I design the catalog, integrations, and automations around how you actually run jobs — not how the software wants you to. You approve the design before any building happens.</p>
+      </div>
+      <div class="proc-step rv d2">
+        <span class="step-num">03 / Implement</span>
+        <h3>Build, migrate, train</h3>
+        <p>Build, migrate, connect, and configure — then train your team to run it. Documentation goes with you, so you're not dependent on me to make changes later.</p>
+      </div>
+      <div class="proc-step rv d3">
+        <span class="step-num">04 / Optimize</span>
+        <h3>Refine and support</h3>
+        <p>Refine, automate further, and support you as the business grows. Many clients keep me on a monthly retainer for ongoing optimization and the next round of automation.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TIMELINE / BACKGROUND ===== -->
+<section class="sec dim" id="background">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="ey">The background</span>
+      <h2>Two careers, <em>one practice</em>.</h2>
+      <p class="lede">Sales operator from enterprise IT, plus contractor running a real construction company. The combination is what makes the implementations work.</p>
+    </div>
+    <div class="timeline">
+      <div class="tl-item rv">
+        <div class="tl-yr">2024 — Now</div>
+        <div class="tl-role">
+          <b>Tradesman Technology — Founder &amp; Lead Consultant</b>
+          <small>JobTread implementation, optimization, and integration for contractors across every trade. Onboarding 6–8 new clients per month. 20+ projects delivered. Done-for-you and done-with-you engagement models.</small>
+        </div>
+        <div class="tl-co">TRADESMAN TECH</div>
+      </div>
+      <div class="tl-item rv d1">
+        <div class="tl-yr">2024 — Now</div>
+        <div class="tl-role">
+          <b>Co-Owner</b>
+          <small>Concrete and post-frame construction startup. Built and ran the full JobTread + QuickBooks + Google Workspace stack from day one. The implementation I did on myself before I did it for clients.</small>
+        </div>
+        <div class="tl-co">HBR CONSTRUCTION</div>
+      </div>
+      <div class="tl-item rv d2">
+        <div class="tl-yr">2019 — 2021</div>
+        <div class="tl-role">
+          <b>Business Development Manager</b>
+          <small>Opened a new Nashville market territory from scratch to $840K in revenue inside year one, with 23 active accounts. Enterprise infrastructure and security solutions.</small>
+        </div>
+        <div class="tl-co">KELLER SCHROEDER</div>
+      </div>
+      <div class="tl-item rv d3">
+        <div class="tl-yr">2014 — 2018</div>
+        <div class="tl-role">
+          <b>Select Account Manager</b>
+          <small>Managed 60+ accounts including five Fortune 500 customers. ~$3M annual revenue book at 30% YoY growth. Multi-million-dollar infrastructure and security projects.</small>
+        </div>
+        <div class="tl-co">KELLER SCHROEDER</div>
+      </div>
+      <div class="tl-item rv">
+        <div class="tl-yr">2011 — 2013</div>
+        <div class="tl-role">
+          <b>Owner</b>
+          <small>Independent technology consulting practice serving the SMB market — managed services, sales, and operations. The first version of this practice.</small>
+        </div>
+        <div class="tl-co">TACK MORRIS</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CONTACT ===== -->
+<section class="contact-section" id="book">
+  <div class="wrap">
+    <div class="rv">
+      <span class="ey">Let's talk</span>
+      <h2>Ready to make your software <em>earn its keep?</em></h2>
+      <p class="lede">Tell me what you're running and where it's stuck. The first call is a straight conversation — no pitch deck, no hard close. We'll figure out together whether I can actually help, and if so, what that looks like.</p>
+
+      <div class="contact-direct">
+        <a href="mailto:lee.barron@gmail.com">
+          <span class="lbl">Email</span>
+          <span class="val">lee.barron@gmail.com</span>
+        </a>
+        <a href="https://www.linkedin.com/in/leetbarron" target="_blank" rel="noopener">
+          <span class="lbl">LinkedIn</span>
+          <span class="val">linkedin.com/in/leetbarron</span>
+        </a>
+        <a href="tel:+1">
+          <span class="lbl">Phone</span>
+          <span class="val">Add your office number here</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="form-card rv d1">
+      <span class="ey">Quick start</span>
+      <h3>Book a discovery call</h3>
+      <p>15–30 minute conversation. Tell me what you're running and where you're stuck. If I can help, I'll send a written scope within 48 hours.</p>
+
+      <!-- ============================================================
+           GHL FORM OR CALENDAR EMBED  —  PASTE BETWEEN MARKERS
+           Option A — Form embed: GHL → Sites → Forms → Integrate Form
+           Option B — Calendar embed: GHL → Calendars → Embed code
+           Paste your iframe/script snippet below to replace the placeholder.
+           ============================================================ -->
+      <!-- GHL_BOOKING_START -->
+
+      <a href="mailto:lee.barron@gmail.com?subject=Discovery%20Call%20Request" class="btn" style="width:100%; justify-content:center;">Email to schedule →</a>
+
+      <!-- GHL_BOOKING_END -->
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="wrap">
+    <div class="foot-brand">
+      <svg class="tt-logo foot-logo" role="img" aria-label="Tradesman Technology">
+        <use href="#ttLogo"/>
+      </svg>
+      <span>JobTread Implementation Specialist</span>
+      <p>JobTread implementation, optimization, and integration for contractors who'd rather be building than babysitting software.</p>
+    </div>
+    <div>
+      <h4>Practice</h4>
+      <p><a href="#paths">Where you are</a></p>
+      <p><a href="#services">Services</a></p>
+      <p><a href="#ways">How we work</a></p>
+      <p><a href="#expertise">JobTread depth</a></p>
+      <p><a href="#about">About Lee</a></p>
+    </div>
+    <div>
+      <h4>Contact</h4>
+      <p><a href="mailto:lee.barron@gmail.com">lee.barron@gmail.com</a></p>
+      <p><a href="https://www.linkedin.com/in/leetbarron" target="_blank" rel="noopener">LinkedIn</a></p>
+      <p><a href="#book">Book a discovery call →</a></p>
+    </div>
+  </div>
+  <div class="wrap legal">
+    <span>© 2026 Tradesman Technology · A DBA of TACK Technology Partners, LLC · Horse Branch, KY</span>
+    <span>Not affiliated with or employed by JobTread Software, LLC. Independent implementation specialist.</span>
+  </div>
+</footer>
+
+</div><!-- /.tt-site -->
+
+<script>
+// Scroll-reveal: minimal IntersectionObserver, no dependencies.
+(function() {
+  if (typeof IntersectionObserver === 'undefined') {
+    document.querySelectorAll('.tt-site .rv').forEach(function(el){ el.classList.add('in'); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if (entry.isIntersecting) {
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.tt-site .rv').forEach(function(el){ io.observe(el); });
+})();
+</script>
+
+</body>
+</html>
